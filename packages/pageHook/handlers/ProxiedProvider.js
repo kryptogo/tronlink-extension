@@ -1,73 +1,59 @@
-import TronWeb from 'tronweb';
+/* eslint-disable */
+
 import Logger from '@tronlink/lib/logger';
-import axios from 'axios';
+import TronWeb from 'tronweb';
 
 const { HttpProvider } = TronWeb.providers;
 const logger = new Logger('ProxiedProvider');
 
 class ProxiedProvider extends HttpProvider {
-    constructor() {
-        super('http://127.0.0.1');
+  constructor() {
+    super('http://127.0.0.1');
+    this.ready = true;
+    this.queue = [];
+  }
 
-        logger.info('Provider initialised');
-
-        this.ready = false;
-        this.queue = [];
-    }
-
-    configure(url) {
-        logger.info('Received new node:', url);
-
-        this.host = url;
-        this.instance = axios.create({
-            baseURL: url,
-            timeout: 30000
-        });
-
-        this.ready = true;
-
-        while(this.queue.length) {
-            const {
-                args,
-                resolve,
-                reject
-            } = this.queue.shift();
-
-            this.request(...args)
-                .then(resolve)
-                .catch(reject)
-                .then(() => (
-                    logger.info(`Completed the queued request to ${ args[ 0 ] }`)
-                ));
+  async request(endpoint, payload = {}, method = 'get') {
+    // 將所有請求轉發給 Flutter
+    console.log('endpoint', endpoint);
+    console.log('payload', payload);
+    console.log('method', method);
+    try {
+      const response = await window.flutter_inappwebview.callHandler(
+        'tronlink_provider',
+        {
+          endpoint,
+          payload,
+          method,
         }
-    }
+      );
 
-    request(endpoint, payload = {}, method = 'get') {
-        if(!this.ready) {
-            logger.info(`Request to ${ endpoint } has been queued`);
+      console.log('response', response);
 
-            return new Promise((resolve, reject) => {
-                this.queue.push({
-                    args: [ endpoint, payload, method ],
-                    resolve,
-                    reject
-                });
-            });
-        }
-
-        return super.request(endpoint, payload, method).then(res => {
-            const response = res.transaction || res;
-
-            Object.defineProperty(response, '__payload__', {
-                writable: false,
-                enumerable: false,
-                configurable: false,
-                value: payload
-            });
-
-            return res;
+      // 保持原有的 __payload__ 屬性定義
+      if (response) {
+        const result = response.transaction || response;
+        Object.defineProperty(result, '__payload__', {
+          writable: false,
+          enumerable: false,
+          configurable: false,
+          value: payload,
         });
+        return response;
+      }
+
+      throw new Error('Empty response from provider');
+    } catch (error) {
+      throw new Error(`Provider request failed: ${error.message}`);
     }
+  }
+
+  // 保留 configure 方法但改為通知 Flutter
+  configure(url) {
+    console.log('Request URL to Flutter:', url);
+    window.flutter_inappwebview.callHandler('tronlink_configure', { url });
+    this.host = url;
+  }
 }
 
 export default ProxiedProvider;

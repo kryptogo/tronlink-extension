@@ -1,40 +1,55 @@
-import randomUUID from 'uuid/v4';
+/* eslint-disable */
 
-const RequestHandler = {
-    init(eventChannel) {
-        this.eventChannel = eventChannel;
-        this.calls = {};
+class RequestHandler {
+  static init(eventChannel) {
+    console.log('[RequestHandler] Initialized');
+    return async (type, data = {}) => {
+      console.log('[RequestHandler] Request:', { type, data });
 
-        this.bindListener();
-        return this.handler.bind(this);
-    },
+      // 直接使用 flutter_inappwebview bridge
+      if (
+        !window.flutter_inappwebview ||
+        !window.flutter_inappwebview.callHandler
+      ) {
+        console.error('[RequestHandler] Flutter bridge not available');
+        throw new Error('Flutter bridge not available');
+      }
 
-    bindListener() {
-        this.eventChannel.on('tabReply', ({ success, data, uuid }) => {
-            if(success)
-                this.calls[ uuid ].resolve(data);
-            else this.calls[ uuid ].reject(data);
-
-            delete this.calls[ uuid ];
-        });
-    },
-
-    handler(action, data = {}) {
-        const uuid = randomUUID();
-
-        this.eventChannel.send('tunnel', {
-            action,
+      try {
+        console.log('[RequestHandler] Calling Flutter bridge...');
+        const response = await window.flutter_inappwebview.callHandler(
+          'tronlink_request',
+          {
+            type,
             data,
-            uuid
-        });
+          }
+        );
 
-        return new Promise((resolve, reject) => {
-            this.calls[ uuid ] = {
-                resolve,
-                reject
-            };
-        });
-    }
-};
+        console.log(
+          '[RequestHandler] Flutter response:',
+          JSON.stringify(response, null, 2)
+        );
+
+        if (!response) {
+          console.error('[RequestHandler] Empty response from Flutter');
+          throw new Error('Empty response from Flutter');
+        }
+
+        try {
+          const parsedResponse =
+            typeof response === 'string' ? JSON.parse(response) : response;
+          console.log('[RequestHandler] response to dapp:', parsedResponse);
+          return parsedResponse;
+        } catch (error) {
+          console.error('[RequestHandler] Error:', error);
+          throw new Error(`Request failed: ${error.message}`);
+        }
+      } catch (error) {
+        console.error('[RequestHandler] Error:', error);
+        throw new Error(`Request failed: ${error.message}`);
+      }
+    };
+  }
+}
 
 export default RequestHandler;

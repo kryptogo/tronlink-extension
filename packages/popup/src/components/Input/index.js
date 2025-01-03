@@ -1,26 +1,8 @@
 import React from 'react';
 
 import { injectIntl } from 'react-intl';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { VALIDATION_STATE } from '@tronlink/lib/constants';
 
 import './Input.scss';
-
-const renderStatus = status => {
-    let icon = false;
-
-    if(status === VALIDATION_STATE.VALID)
-        icon = 'check-circle';
-
-    if(status === VALIDATION_STATE.INVALID)
-        icon = 'times-circle';
-
-    return (
-        <div className='inputStatus'>
-            { icon ? <FontAwesomeIcon icon={ icon } className={ `stateIcon ${ status }` } /> : '' }
-        </div>
-    );
-};
 
 const onKeyPress = ({ key }, onEnter) => {
     if(key === 'Enter')
@@ -71,7 +53,7 @@ const Input = props => {
 
     return (
         <div className={ `customInput ${ className }` }>
-            { icon ? <FontAwesomeIcon icon={ icon } className='inputIcon' /> : '' }
+            { '' }
             <input
                 className={ inputClasses.join(' ') }
                 placeholder={ placeholder }
@@ -81,7 +63,7 @@ const Input = props => {
                 onKeyPress={ event => !isDisabled && onKeyPress(event, onEnter) }
                 readOnly={ isDisabled }
             />
-            { status ? renderStatus(status) : '' }
+            { '' }
         </div>
 
     );

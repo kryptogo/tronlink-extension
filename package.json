@@ -27,6 +27,8 @@
   },
   "dependencies": {
     "@babel/runtime": "^7.1.2",
+    "@tronweb3/tronwallet-adapters": "^1.2.6",
+    "buffer": "^6.0.3",
     "yarn": "^1.13.0"
   }
 }
