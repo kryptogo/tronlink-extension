@@ -7,6 +7,22 @@ Main functions:
 Sending and receiving TRX, TRC10 and TRC20 tokens;  
 Smart contract calls integrated;    
 
+## KG Compile
+
+如果遇到 node 版本问题，可以设置 NODE_OPTIONS 为 --openssl-legacy-provider
+```sh
+export NODE_OPTIONS=--openssl-legacy-provider
+```
+
+compile
+```sh
+$ yarn build:core
+```
+
+override in flutter 
+```sh
+$ cp dist/pageHook.js path/to/kg-wallet-app/assets/js/tron_link/pageHook.js
+```
 
 ## Downloads
 **Chrome** &ndash; [Download](https://chrome.google.com/webstore/detail/ibnejdfjmmkpcnlpebklmnkoeoihofec) &nbsp; [![Chrome Web Store](https://img.shields.io/chrome-web-store/d/ogffaloegjglncjfehdfplabnoondfjo.svg?style=flat-square)](https://chrome.google.com/webstore/detail/ibnejdfjmmkpcnlpebklmnkoeoihofec) &nbsp; [![Chrome Web Store](https://img.shields.io/chrome-web-store/rating/ogffaloegjglncjfehdfplabnoondfjo.svg?style=flat-square)](https://chrome.google.com/webstore/detail/ibnejdfjmmkpcnlpebklmnkoeoihofec)
