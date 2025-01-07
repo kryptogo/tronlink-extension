@@ -156,52 +156,52 @@ const pageHook = {
     sunWeb.mainchain.trx.sign = (...args) => this.sign(...args);
     sunWeb.sidechain.trx.sign = (...args) => this.sign(...args);
 
-    // Proxy transactionBuilder methods
-    const originalTrx = tronWeb.transactionBuilder;
-    tronWeb.transactionBuilder = new Proxy(originalTrx, {
-      get(target, prop) {
-        console.log('[Proxy] TransactionBuilder method accessed:', prop);
-
-        if (typeof target[prop] === 'function') {
-          return async (...args) => {
-            if (
-              window.flutter_inappwebview &&
-              window.flutter_inappwebview.callHandler
-            ) {
-              try {
-                console.log(
-                  `[Proxy] Forwarding ${prop} to Flutter with args:`,
-                  args
-                );
-                const response = await window.flutter_inappwebview.callHandler(
-                  'tronlink_transaction',
-                  {
-                    method: prop,
-                    params: args,
-                  }
-                );
-                console.log(
-                  `[Proxy] Response from Flutter for ${prop}:`,
-                  response
-                );
-                return response;
-              } catch (error) {
-                console.error(
-                  `[Proxy] Error in transactionBuilder.${prop}:`,
-                  error
-                );
-                throw error;
-              }
-            }
-            console.log(
-              `[Proxy] Flutter bridge not available, using original ${prop}`
-            );
-            return target[prop](...args);
-          };
-        }
-        return target[prop];
-      },
-    });
+    //     // Proxy transactionBuilder methods
+    //     const originalTrx = tronWeb.transactionBuilder;
+    //     tronWeb.transactionBuilder = new Proxy(originalTrx, {
+    //       get(target, prop) {
+    //         console.log('[Proxy] TransactionBuilder method accessed:', prop);
+    //
+    //         if (typeof target[prop] === 'function') {
+    //           return async (...args) => {
+    //             if (
+    //               window.flutter_inappwebview &&
+    //               window.flutter_inappwebview.callHandler
+    //             ) {
+    //               try {
+    //                 console.log(
+    //                   `[Proxy] Forwarding ${prop} to Flutter with args:`,
+    //                   args
+    //                 );
+    //                 const response = await window.flutter_inappwebview.callHandler(
+    //                   'tronlink_transaction',
+    //                   {
+    //                     method: prop,
+    //                     params: args,
+    //                   }
+    //                 );
+    //                 console.log(
+    //                   `[Proxy] Response from Flutter for ${prop}:`,
+    //                   response
+    //                 );
+    //                 return response;
+    //               } catch (error) {
+    //                 console.error(
+    //                   `[Proxy] Error in transactionBuilder.${prop}:`,
+    //                   error
+    //                 );
+    //                 throw error;
+    //               }
+    //             }
+    //             console.log(
+    //               `[Proxy] Flutter bridge not available, using original ${prop}`
+    //             );
+    //             return target[prop](...args);
+    //           };
+    //         }
+    //         return target[prop];
+    //       },
+    //     });
 
     window.tronLink.tronWeb = tronWeb;
     window.tronWeb = tronWeb;
