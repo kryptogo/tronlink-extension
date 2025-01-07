@@ -17,6 +17,11 @@ class RequestHandler {
 
       try {
         console.log('[RequestHandler] Calling Flutter bridge...');
+        console.log(
+          '[RequestHandler] Sending request data:',
+          JSON.stringify(data, null, 2)
+        );
+
         const response = await window.flutter_inappwebview.callHandler(
           'tronlink_request',
           {

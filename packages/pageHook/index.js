@@ -23,9 +23,14 @@ const pageHook = {
 
   init() {
     console.log('[PageHook] Starting initialization');
-    this._bindTronWeb();
-    this._bindEventChannel();
-    this._bindEvents();
+    console.log('window.tronLink', window.flutter_inappwebview.callHandler);
+    try {
+      this._bindTronWeb();
+      this._bindEventChannel();
+      this._bindEvents();
+    } catch (error) {
+      console.error('[PageHook] Initialization failed:', error);
+    }
 
     console.log('[PageHook] Sending init request');
     this.request('init')
@@ -97,30 +102,22 @@ const pageHook = {
       tronWeb: null,
     };
 
-    const tronWeb = new TronWeb(
-      new ProxiedProvider(),
-      new ProxiedProvider(),
-      new ProxiedProvider()
-    );
+    const tronWeb = new TronWeb({
+      fullNode: new ProxiedProvider(),
+      solidityNode: new ProxiedProvider(),
+      eventServer: new ProxiedProvider(),
+    });
 
-    const tronWeb1 = new TronWeb(
-      new ProxiedProvider(),
-      new ProxiedProvider(),
-      new ProxiedProvider()
-    );
+    // Directly assign the utils
+    tronWeb.utils = {
+      ...tronWeb.utils,
+      ...Utils,
+      promiseInjector: Utils.injectPromise,
+    };
 
-    const tronWeb2 = new TronWeb(
-      new ProxiedProvider(),
-      new ProxiedProvider(),
-      new ProxiedProvider()
-    );
     const sunWeb = new SunWeb(
-      tronWeb1,
-      tronWeb2,
-      //{fullNode:'https://api.trongrid.io',solidityNode:'https://api.trongrid.io',eventServer:'https://api.trongrid.io'},
-      //{fullNode:'https://sun.tronex.io',solidityNode:'https://sun.tronex.io',eventServer:'https://sun.tronex.io'},
-      //{fullNode:'http://47.252.84.158:8070',solidityNode:'http://47.252.84.158:8071',eventServer:'http://47.252.81.14:8070'},
-      //{fullNode:'http://47.252.85.90:8070',solidityNode:'http://47.252.85.90:8071',eventServer:'http://47.252.87.129:8070'},
+      tronWeb,
+      tronWeb,
       CONTRACT_ADDRESS.MAIN,
       CONTRACT_ADDRESS.SIDE,
       SIDE_CHAIN_ID
@@ -207,6 +204,8 @@ const pageHook = {
     window.tronWeb = tronWeb;
     window.tron = tronWeb;
     window.sunWeb = sunWeb;
+    console.log('tronWeb', window.tronWeb);
+    console.log('tronlink', window.tronLink.tronWeb);
   },
 
   _bindEventChannel() {
@@ -286,12 +285,12 @@ const pageHook = {
     }
 
     if (!callback) {
-      return Utils.injectPromise(
-        this.sign.bind(this),
-        transaction,
-        privateKey,
-        useTronHeader
-      );
+      return new Promise((resolve, reject) => {
+        this.sign(transaction, privateKey, useTronHeader, (err, result) => {
+          if (err) return reject(err);
+          resolve(result);
+        });
+      });
     }
 
     if (privateKey) {
