@@ -37,7 +37,7 @@ class RequestHandler {
 
         if (!response) {
           console.error('[RequestHandler] Empty response from Flutter');
-          throw new Error('Empty response from Flutter');
+          return Error('Empty response from Flutter');
         }
 
         try {
